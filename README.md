@@ -52,5 +52,3 @@
 - **2D Array for Grid**: The grid of cells is represented as a 2D array (rows x cols).
 - **Neighboring Sum Rule**: The core update rule is to compute the average of neighboring cells and assign it to the current cell.
 - **Canvas Rendering**: The use of `createImageData` and `putImageData` to display the grid on the canvas efficiently.
-
-The code simulates a simple form of cellular automaton, where the colors of the cells evolve over time based on the surrounding cells' values, producing evolving patterns across the grid.
