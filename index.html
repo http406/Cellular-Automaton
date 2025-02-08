@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cellular Automaton</title>
+        <style>
+            body { margin: 0; background: black; overflow: hidden; }
+            canvas { display: block; width: 100vw; height: 100vh; }
+            button {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                padding: 10px 20px;
+                background: white;
+                border: none;
+                cursor: pointer;
+                font-size: 16px;
+                z-index: 10;
+            }
+        </style>
+    </head>
+    <body>
+        <button id="regenerate">Regenerate</button>
+        <canvas id="myCanvas"></canvas>
+        <script>
+            class CellularAutomaton {
+                constructor(canvas, cellSize) {
+                    this.canvas = canvas;
+                    this.ctx = canvas.getContext('2d');
+                    this.cellSize = cellSize;
+                    this.initCanvas();
+                    this.initializeGrid();
+                    this.startAnimation();
+                    window.addEventListener('resize', () => this.initCanvas());
+                    this.canvas.addEventListener('pointerdown', (e) => this.handleTouch(e));
+                }
+
+                initCanvas() {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                    this.rows = Math.floor(this.canvas.height / this.cellSize);
+                    this.cols = Math.floor(this.canvas.width / this.cellSize);
+                    this.initializeGrid();
+                }
+
+                initializeGrid() {
+                    this.grid = Array.from({ length: this.rows }, () =>
+                        Array.from({ length: this.cols }, () => Math.floor(Math.random() * 256))
+                    );
+                }
+
+                updateGrid() {
+                    let newGrid = Array.from({ length: this.rows }, () => Array(this.cols).fill(0));
+                    for (let y = 1; y < this.rows - 1; y++) {
+                        for (let x = 1; x < this.cols - 1; x++) {
+                            let sum = 0;
+                            for (let dy = -1; dy <= 1; dy++) {
+                                for (let dx = -1; dx <= 1; dx++) {
+                                    sum += this.grid[y + dy][x + dx];
+                                }
+                            }
+                            newGrid[y][x] = Math.min(255, sum / 9);
+                        }
+                    }
+                    this.grid = newGrid;
+                }
+
+                render() {
+                    if (this.cols === 0 || this.rows === 0) return;
+                    let imageData = this.ctx.createImageData(this.cols, this.rows);
+                    let data = imageData.data;
+                    for (let y = 0; y < this.rows; y++) {
+                        for (let x = 0; x < this.cols; x++) {
+                            let color = this.grid[y][x];
+                            let index = (y * this.cols + x) * 4;
+                            data[index] = color;
+                            data[index + 1] = (color * 2) % 256;
+                            data[index + 2] = (color * 3) % 256;
+                            data[index + 3] = 255;
+                        }
+                    }
+                    this.ctx.putImageData(imageData, 0, 0);
+                }
+
+                handleTouch(event) {
+                    let rect = this.canvas.getBoundingClientRect();
+                    let x = Math.floor((event.clientX - rect.left) / this.cellSize);
+                    let y = Math.floor((event.clientY - rect.top) / this.cellSize);
+                    
+                    for (let dy = -2; dy <= 2; dy++) {
+                        for (let dx = -2; dx <= 2; dx++) {
+                            let nx = x + dx;
+                            let ny = y + dy;
+                            if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows) {
+                                this.grid[ny][nx] = Math.floor(Math.random() * 256); 
+                            }
+                        }
+                    }
+                }
+
+                startAnimation() {
+                    const animate = () => {
+                        this.updateGrid();
+                        this.render();
+                        requestAnimationFrame(animate);
+                    };
+                    animate();
+                }
+            }
+
+            const canvas = document.getElementById("myCanvas");
+            let automaton = new CellularAutomaton(canvas, 1);
+            
+            document.getElementById("regenerate").addEventListener("click", () => {
+                automaton.initializeGrid();
+            });
+        </script>
+    </body>
+  </html>
+  
